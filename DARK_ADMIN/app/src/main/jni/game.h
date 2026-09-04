@@ -1,0 +1,28 @@
+/*
+ * DARK OWNER ADMIN SERVER
+ * Crafted with passion & dedication.
+ * Original Credits: DARK OWNER ADMIN SERVER
+ * Telegram: @DARK_OWNER_VIP
+ * Private Source & Support: DM @DARK_OWNER_VIP
+ * Proudly Made for India
+ */
+#include "game/Foundation.h"
+#include "game/Types.h"
+#include "game/CCNode.h"
+#include "game/CCDirector.h"
+#include "game/StateManager.h"
+#include "game/GameManager.h"
+#include "game/MainManager.h"
+#include "game/MenuManager.h"
+#include "game/VisualCue.h"
+#include "game/Ball.h"
+#include "game/UserInfo.h"
+#include "game/Table.h"
+#include "game/inc/game.h"
+#include "game/inc/GameConstants.h"
+#include "game/inc/NumberUtils.h"
+#include "game/inc/Prediction.fast.h"
+// #include "8bp/inc/AutoAim.h"
+#include "game/inc/AutoPlay.h"
+#include "game/inc/AutoQueue.h"
+#include "game/inc/ScreenTable.h"
