@@ -9,13 +9,16 @@
 package com.eightballpool.bp; // ← Schimbă cu package-ul tău
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,8 +39,45 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
 
-        // Invocare din MainActivity
-        floatingbtn(this);
+        // Ask for the floating-window (overlay) permission when missing.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Floating menu")
+                    .setMessage("This app shows a floating menu on top of other apps.\n\nTap ALLOW, enable \"Display over other apps\" on the next screen, then come back.")
+                    .setPositiveButton("ALLOW", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            try {
+                                Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                        Uri.parse("package:" + MainActivity.this.getPackageName()));
+                                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(i);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    })
+                    .setNegativeButton("SKIP", null)
+                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            // Show the floating button regardless, like before.
+                            floatingbtn(MainActivity.this);
+                        }
+                    })
+                    .show();
+        } else {
+            floatingbtn(this);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // After returning from the permission screen, (re)create the button.
+        if (floatingButtonView == null) {
+            floatingbtn(this);
+        }
     }
 
     /**
@@ -52,11 +93,21 @@ public class MainActivity extends AppCompatActivity {
 
         final WindowManager windowManager = (WindowManager) activity.getSystemService(Activity.WINDOW_SERVICE);
 
-        // ── Layout params (TYPE_APPLICATION = fără permisiune overlay) ────────
+        // ── Layout params ─────────────────────────────────────────────────────
+        // Overlay permission granted + Android 8+: permanent overlay type.
+        // Otherwise: app-window type (original behavior, no permission needed).
+        final int windowType;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Settings.canDrawOverlays(activity)) {
+            windowType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            windowType = WindowManager.LayoutParams.TYPE_APPLICATION;
+        }
         final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION,   // ← no overlay perm needed
+                windowType,   // overlay if permission granted, else app window
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT
         );
