@@ -45,15 +45,15 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param activity — Activity-ul curent (necesar pentru WindowManager)
      */
-    public static void floatingbtn(Activity activity) {
+    public static void floatingbtn(final Activity activity) {
 
         // Evită duplicate dacă metoda e apelată de mai multe ori
         if (floatingButtonView != null) return;
 
-        WindowManager windowManager = (WindowManager) activity.getSystemService(Activity.WINDOW_SERVICE);
+        final WindowManager windowManager = (WindowManager) activity.getSystemService(Activity.WINDOW_SERVICE);
 
         // ── Layout params (TYPE_APPLICATION = fără permisiune overlay) ────────
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION,   // ← no overlay perm needed
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         params.y = 200;
 
         // ── Container principal ───────────────────────────────────────────────
-        LinearLayout container = new LinearLayout(activity);
+        final LinearLayout container = new LinearLayout(activity);
         container.setOrientation(LinearLayout.HORIZONTAL);
         container.setGravity(Gravity.CENTER_VERTICAL);
         container.setPadding(24, 16, 28, 16);
@@ -110,14 +110,17 @@ public class MainActivity extends AppCompatActivity {
         container.addView(text);
 
         // ── Click → deschide link Telegram ───────────────────────────────────
-        container.setOnClickListener(v -> {
-            try {
-                Intent intent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://t.me/DARK_OWNER_VIP"));
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                activity.startActivity(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
+        container.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("https://t.me/DARK_OWNER_VIP"));
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    activity.startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
 
