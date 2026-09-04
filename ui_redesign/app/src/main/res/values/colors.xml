@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Obsidian + Cyan theme tokens (2026 UI refresh).
+  These are the design-tokens for the Android-side UI. The ImGui menu uses the
+  same palette, defined as UI_* constants in jni/menu.h (see THEME_GUIDE.md).
+  All values are visual-only; geometry, timing and behavior are unchanged.
+-->
+
+<resources>
+    <!-- Frame depth: darkest background of the floating window -->
+    <color name="ui_frame">#FA0B1220</color>
+    <!-- Content panel: main working area behind tabs -->
+    <color name="ui_panel">#131C2A</color>
+    <!-- Raised cards: feature cards, hero blocks -->
+    <color name="ui_card">#182335</color>
+    <!-- Sunken well: text inputs -->
+    <color name="ui_well">#0E1622</color>
+    <!-- Sidebar: tab rail -->
+    <color name="ui_sidebar">#F5101A26</color>
+
+    <!-- Accent: primary action color (cyan) -->
+    <color name="ui_accent">#22D3EE</color>
+    <!-- Accent deep: idle button state -->
+    <color name="ui_accent_dark">#155E75</color>
+    <!-- Accent bright: hover / emphasis -->
+    <color name="ui_accent_light">#A5F3FC</color>
+
+    <!-- Primary text -->
+    <color name="ui_text">#E8EEF5</color>
+    <!-- Secondary / muted text -->
+    <color name="ui_muted">#9AA8B8</color>
+
+    <!-- Status: active/enabled features -->
+    <color name="ui_success">#34D399</color>
+    <!-- Status: errors / expired -->
+    <color name="ui_danger">#F87171</color>
+    <!-- Status: warning / awaiting -->
+    <color name="ui_warning">#FBBF24</color>
+
+    <!-- Keylines / borders -->
+    <color name="ui_border">#2E4A5E</color>
+    <color name="ui_border_soft">#22384A</color>
+
+    <!-- Floating pill (MainActivity floating launcher) -->
+    <color name="ui_pill_bg">#0B1220</color>
+    <color name="ui_pill_stroke">#22D3EE</color>
+</resources>
