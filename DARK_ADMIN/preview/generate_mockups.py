@@ -161,9 +161,12 @@ def mock_draw_tab():
     toggle_row(d, x0, y0+6, "Draw Lines", True)
     toggle_row(d, x0, y0+56, "Draw Pockets", True)
     y = slider(d, x0, x1-70, y0+110, "Line Thickness", 4/10.0, "4")
+    y = slider(d, x0, x1-70, y+18, "Menu Scale", 0.9, "90%")
     y2 = slider(d, x0, x1-70, y+18, "Fix Menu Size", 0.5, "Normal")
+    # features chip
+    d.text((x0, y2+22), "Features active: 2 / 4", font=font(13), fill=LABEL)
     # Save Config
-    by0, by1 = y2+24, y2+24+55
+    by0, by1 = y2+46, y2+46+55
     rounded(d, (x0, by0, x1, by1), 12, fill=ACCENT_DARK)
     ctext(d, (x0+x1)/2, (by0+by1)/2, "Save Config", font(16, True), TEXT95)
     save("preview_draw.png")
@@ -283,6 +286,7 @@ def mock_login():
     rounded(d, (bx+34, by0, bx+CW-34, by1), 14, fill=ACCENT_HOV)
     ctext(d, bx+CW/2, (by0+by1)/2, "ENTER KEY", font(17, True), INK)
     ctext(d, bx+CW/2, by1+26, "Authenticating...", font(12), MUTED)
+    ctext(d, bx+CW/2, by1+48, "Default master key: annati", font(12), LABEL)
     ctext(d, bx+CW/2, by+CH-26, "DARK OWNER ADMIN SERVER", font(11), MUTED)
     save("preview_login.png", img)
 

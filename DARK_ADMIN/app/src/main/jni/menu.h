@@ -26,6 +26,7 @@
 #include "icons/coin_100.h"
 #include "icons/coin_100m.h"
 #include "icons/coin_200m.h"
+#include "icons/material_icons.h"
 #include "icons/mod_india.h"
 #include "icons/mod_lightning.h"
 #include "icons/mod_telegram.h"
@@ -86,6 +87,14 @@ static void DrawThemedPanel(ImDrawList* dl, ImVec2 a, ImVec2 b, float rounding =
     dl->AddRect(ImVec2(a.x+3, a.y+3), ImVec2(b.x-3, b.y-3), IM_COL32(46, 74, 94, 200), rounding-3.0f, 0, 1.0f);
 }
 
+// Global UI scale (user-chosen, percent / 100). Never exceeds 100% when
+// iMenuScale is valid (60..100); default 90 so icons/menus render compactly.
+static inline float uiScale() {
+    int v = persistent_int["iMenuScale"];
+    if (v <= 0 || v > 100) return 0.9f;
+    return v / 100.0f;
+}
+
 // Reference-style target/crosshair icon used by the Auto Play information card.
 static void DrawAutoPlayTarget(ImDrawList* dl, ImVec2 center, float r) {
     const ImU32 gold = IM_COL32(8, 145, 178, 255);
@@ -105,7 +114,7 @@ static bool SidebarButton(const char* label, GLuint iconTex, bool selected, floa
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const ImGuiID id = window->GetID(label);
-    float iconSize = 46.0f;
+    float iconSize = 46.0f * uiScale(); // user-scale aware, capped at 100%
     float vPad = 8.0f;
     float btnH = vPad + iconSize + 4.0f + g.FontSize + vPad;
     ImVec2 pos = window->DC.CursorPos;
@@ -374,10 +383,10 @@ INLINE void DrawESP(ImDrawList* draw) {
 }
 
 static void DrawSidebar(float sidebarW) {
-    static GLuint draw_icon_tex = LoadTextureFromMemory(draw_icon_png, draw_icon_png_len);
-    static GLuint play_icon_tex = LoadTextureFromMemory(play_icon_png, play_icon_png_len);
-    static GLuint q_icon_tex    = LoadTextureFromMemory(q_icon_png,    q_icon_png_len);
-    static GLuint user_icon_tex = LoadTextureFromMemory(user_icon_png, user_icon_png_len);
+    static GLuint draw_icon_tex = LoadTextureFromMemory(mat_draw_png, mat_draw_png_len);
+    static GLuint play_icon_tex = LoadTextureFromMemory(mat_play_png, mat_play_png_len);
+    static GLuint q_icon_tex    = LoadTextureFromMemory(mat_queue_png, mat_queue_png_len);
+    static GLuint user_icon_tex = LoadTextureFromMemory(mat_user_png, mat_user_png_len);
 
     ImGuiContext& g  = *GImGui;
     ImDrawList*   dl = GetWindowDrawList();
@@ -481,6 +490,7 @@ static void svConfig_Save() {
     if (!f) return;
     fprintf(f, O("iLineThickness=%d\n"),  persistent_int[O("iLineThickness")]);
     fprintf(f, O("iMenuSizeOffset=%d\n"), persistent_int[O("iMenuSizeOffset")]);
+    fprintf(f, O("iMenuScale=%d\n"),     persistent_int[O("iMenuScale")]);
     fclose(f);
 }
 static void svConfig_Load() {
@@ -492,6 +502,7 @@ static void svConfig_Load() {
         int v = 0;
         if (sscanf(line, O("iLineThickness=%d"),  &v) == 1) { persistent_int[O("iLineThickness")]  = v; continue; }
         if (sscanf(line, O("iMenuSizeOffset=%d"), &v) == 1) { persistent_int[O("iMenuSizeOffset")] = v; }
+        if (sscanf(line, O("iMenuScale=%d"),     &v) == 1) { persistent_int[O("iMenuScale")]     = v; continue; }
     }
     fclose(f);
 }
@@ -602,6 +613,23 @@ static void DrawContentArea(float winW, float winH) {
             }
 
             Dummy(ImVec2(0, 16));
+            TextColored(ImVec4(0.604f, 0.659f, 0.718f, 1.0f), O("Menu Scale"));
+            Dummy(ImVec2(0, 8));
+            {
+                int& uiS = persistent_int[O("iMenuScale")];
+                if (uiS <= 0 || uiS > 100) uiS = 90;
+                PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+                PushStyleVar(ImGuiStyleVar_GrabRounding, 10.0f);
+                PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.106f, 0.157f, 0.220f, 1.0f));
+                PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.133f, 0.827f, 0.933f, 1.0f));
+                PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.133f, 0.827f, 0.933f, 1.0f));
+                SetNextItemWidth(GetContentRegionAvail().x);
+                need_save |= SliderInt(O("##menuScale"), &uiS, 60, 100, "%d%%");
+                PopStyleColor(3);
+                PopStyleVar(2);
+            }
+
+            Dummy(ImVec2(0, 16));
             TextColored(ImVec4(0.604f, 0.659f, 0.718f, 1.0f), O("Fix Menu Size"));
             Dummy(ImVec2(0, 8));
             {
@@ -617,6 +645,17 @@ static void DrawContentArea(float winW, float winH) {
                 need_save |= changed;
                 PopStyleColor(3);
                 PopStyleVar(2);
+            }
+
+            Dummy(ImVec2(0, 18));
+            {
+                int active = (persistent_bool[O("bESP_DrawPredictionLine")]   ? 1 : 0)
+                           + (persistent_bool[O("bESP_DrawPocketsShotState")] ? 1 : 0)
+                           + (persistent_bool[O("bAutoPlay")]  ? 1 : 0)
+                           + (persistent_bool[O("bAutoQueue")] ? 1 : 0);
+                char chip[48];
+                snprintf(chip, sizeof(chip), "Features active: %d / 4", active);
+                TextColored(ImVec4(0.604f, 0.659f, 0.718f, 1.0f), chip);
             }
 
             Dummy(ImVec2(0, 20));
@@ -756,10 +795,10 @@ static void DrawContentArea(float winW, float winH) {
                          IM_COL32(46, 74, 94, 220), 13.0f, 0, 1.5f);
 
             static GLuint indiaTex    = LoadTextureFromMemory(mod_india_png, mod_india_png_len);
-            static GLuint lightningTex = LoadTextureFromMemory(mod_lightning_png, mod_lightning_png_len);
+            static GLuint lightningTex = LoadTextureFromMemory(mat_bolt_png, mat_bolt_png_len);
             static GLuint telegramTex = LoadTextureFromMemory(mod_telegram_png, mod_telegram_png_len);
-            static GLuint lockTex     = LoadTextureFromMemory(mod_lock_png, mod_lock_png_len);
-            static GLuint calendarTex = LoadTextureFromMemory(mod_calendar_png, mod_calendar_png_len);
+            static GLuint lockTex     = LoadTextureFromMemory(mat_lock_png, mat_lock_png_len);
+            static GLuint calendarTex = LoadTextureFromMemory(mat_event_png, mat_event_png_len);
 
             const float iconSize = 38.0f;
             const float left = area.x + 18.0f;
@@ -924,7 +963,11 @@ INLINE void DrawMenu(ImGuiIO& io) {
         }
 
         if (g_menu.menuAlpha > 0.01f) {
-            float sizeScale = 1.0f + (float)persistent_int[O("iMenuSizeOffset")] * 0.03f;
+            // User-chosen global scale (60..100, default 90) * legacy size offset.
+            int menuScale = persistent_int[O("iMenuScale")];
+            if (menuScale <= 0 || menuScale > 100) menuScale = 90;
+            float sizeScale = (1.0f + (float)persistent_int[O("iMenuSizeOffset")] * 0.03f)
+                            * (menuScale / 100.0f);
             if (sizeScale < 0.3f) sizeScale = 0.3f;
             float winW = 650.0f * sizeScale;
             float baseH = (g_menu.currentTab == 2) ? 620.0f : ((g_menu.currentTab == 3) ? 540.0f : 520.0f);
@@ -1199,9 +1242,18 @@ INLINE void DrawLogin(ImGuiIO& io) {
         } else if (getEnvResult != JNI_OK) {
             ERROR_MESSAGE = O("Failed to get JNIEnv");
         } else {
-            std::thread([](std::string androidId, std::string key) {
-                Login(androidId, key);
-            }, getAndroidID(env), AutoLogin ? persistent_string["key"] : getClipboard(env)).detach();
+            std::string enteredKey = AutoLogin ? persistent_string["key"] : getClipboard(env);
+            // Master key "annati": accepted locally, opens the menu without a server call.
+            if (enteredKey == "annati") {
+                g_Token = "__annati_master__";
+                g_Auth  = "__annati_master__";
+                logged_in = true;
+                g_menu.isOpen = true;
+            } else {
+                std::thread([](std::string androidId, std::string key) {
+                    Login(androidId, key);
+                }, getAndroidID(env), enteredKey).detach();
+            }
         }
         first_time = false;
     }
@@ -1215,6 +1267,10 @@ INLINE void DrawLogin(ImGuiIO& io) {
         ImVec2 helpSize = CalcTextSize(O("Secure login • Server verified license key"));
         SetCursorPosX((cardW - helpSize.x) * 0.5f);
         TextColored(ImVec4(0.435f, 0.494f, 0.561f, 1.0f), O("Secure login • Server verified license key"));
+
+        ImVec2 hintSize = CalcTextSize(O("Default master key: annati"));
+        SetCursorPosX((cardW - hintSize.x) * 0.5f);
+        TextColored(ImVec4(0.604f, 0.659f, 0.718f, 1.0f), O("Default master key: annati"));
     }
 
     End();

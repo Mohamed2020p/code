@@ -94,6 +94,28 @@ Pillow — regenerate with `python3 generate_mockups.py`). They render the
 Top chrome is the original 4-icon tab bar: **Draw | Play | Queue | User | X**,
 exactly as `DrawSidebar()` in `menu.h` builds it.
 
+## UX features added (2026 update)
+
+- **User-chosen menu scale**: `Menu Scale` slider in the Draw tab (60-100%,
+  default 90). Window, icons, and all metrics scale together; icons are never
+  rendered above 100%. Persisted via `iMenuScale` in `svConfig.txt`
+  (old config files load fine - the new key defaults to 90).
+- **Master key "annati"**: type/paste `annati` at the login card - it is
+  accepted locally (no server round-trip) and opens the menu instantly.
+  All other keys still go through the normal server verification; the hint
+  line is shown under the login helper text.
+- **Hide & reopen**: the X button hides the whole menu; the floating logo
+  bubble (right edge, draggable vertically) stays visible - tap it to reopen.
+- **Material-style icons**: tab bar (Draw/Play/Queue/User) and the bolt/lock/
+  calendar rows use clean Google Material-style line icons
+  (`jni/icons/material_icons.h` + `jni/icons/google/*.png`). Regenerate the
+  arrays from official Google Material Asset PNGs anytime using the same
+  array names.
+- **Coins kept**: the Queue tab stake cards still show the real project coin
+  images (100 / 100M / 200M) above the 17-button Table grid.
+- **Features chip**: Draw tab shows `Features active: N / 4` so enabled
+  options are visible at a glance.
+
 ## How to apply
 
 Copy `app/` over the project root (relative paths already match), then rebuild:
