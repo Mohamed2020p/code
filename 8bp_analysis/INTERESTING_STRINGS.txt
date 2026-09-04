@@ -1,0 +1,144 @@
+================================================================================
+INTERESTING STRINGS & CONSTANTS — 8BP_SRC_PUBLIC_BY_DARK_OWNER (3).zip
+Extracted during static analysis. Locations use repo-relative paths inside the
+archive. "Project" = files authored for this mod (not third-party).
+Note: network endpoint string is documented for research purposes.
+================================================================================
+
+== NETWORK / ENDPOINTS =========================================================
+https://axlmods.myvippanel.shop/useradmin/connect
+    - mod/keylogin.h (inside Login()); stored XOR-encoded (key 0x5A) in the
+      static byte array `kPanelUrl` and decoded at runtime.
+    - Used as CURLOPT_URL for the license-login HTTPS POST.
+https://t.me/DARK_OWNER_VIP
+    - app/src/main/java/com/eightballpool/bp/MainActivity.java (line ~116)
+    - jni/menu.h (line ~873, JOIN NOW button) ; jni/menu.h DrawExpired text
+    - Printed in every project's file header comment & Importent_Notice.txt
+https://jitpack.io
+    - DARK_ADMIN/build.gradle (Maven repo for com.github.topjohnwu.libsu / Glide)
+
+== HTTP BODY / PROTOCOL =========================================================
+"game=PUBG&user_key=%s&serial=%s"     - mod/keylogin.h (POST body format;
+    note the literal "PUBG" even though this build targets 8 Ball Pool —
+    generic key-panel boilerplate reused from other game mods)
+"Content-Type: application/x-www-form-urlencoded" - mod/keylogin.h
+JSON response keys: "status", "data", "token", "rng", "EXP", "reason" - mod/keylogin.h
+
+== UI TEXT (ImGui overlay) =====================================================
+"ADMIN SERVER LOGIN" / "8 BALL POOL"              - menu.h (DrawLogin)
+"Copy your license key and tap login"             - menu.h (DrawLogin)
+"ENTER KEY" / "Authenticating..."                 - menu.h (DrawLogin)
+"Secure login • Server verified license key"      - menu.h (DrawLogin)
+"MOD EXPIRED"                                     - menu.h (DrawExpired)
+"Beta Version Expired. Update on our Telegram @DARK_OWNER_VIP" - menu.h
+"DRAW SETTINGS"/"AUTO PLAY"/"AUTO QUEUE"/"USER INFO" - menu.h tab titles
+"Draw Lines"/"Draw Pockets"/"Line Thickness"/"Fix Menu Size"/"Save Config" - tab 0
+"Enable AutoPlay" / "Auto Play will automatically aim and shoot for you in every match." - tab 1
+"Enable AutoQueue" / table labels "100 .. 200M" (17 tables) - tab 2
+"PROUDLY MADE FOR INDIA"/"DARK OWNER EDITION"/"@DARK_OWNER_VIP"/
+"LICENSE STATUS  •  ACTIVE"/"EXPIRES  •  <date>"/"JOIN NOW" - tab 3
+"CALCULATING..."                                  - menu.h (DrawCalculating)
+"DARK OWNER ADMIN SERVER"                         - menu.h watermark + MainActivity + strings.xml (app_name)
+
+== LOGIN / AUTH ERROR STRINGS ===================================================
+"Server Off" (shown when VPN tunnel detected)     - keylogin.h Login()
+"Could not get Android ID" / "Key Is Empty or Failed to get Key"
+"JVM is unavailable" / "Failed to attach thread to JVM" / "Failed to get JNIEnv"
+"Could not create device identifier" / "Memory allocation failed"
+"Unable to initialize network"
+"Invalid server expiry" / "Key expired" / "Invalid or expired server response"
+"Server response error: " + e.what()
+curl_easy_strerror(res) used for transport errors.
+
+== VPN / TUNNEL INTERFACE NAMES (fail-closed guard) =============================
+"tun0..tun5", "wg0..wg2", "ppp0..ppp1", "ipsec0..ipsec1" - keylogin.h
+    IsVpnOrTunnelActive(): checks /proc/net/dev + ConnectivityManager
+    TRANSPORT_VPN / TYPE_VPN via JNI.
+
+== ANDROID / JNI CLASS REFERENCES (project) =====================================
+"android/app/ActivityThread" (currentActivityThread, getApplication)
+"android/provider/Settings$Secure" ("ANDROID_ID")  - java.h getAndroidID()
+"android/os/Build" fields "MODEL","BRAND"          - keylogin.h
+"java/util/UUID" "nameUUIDFromBytes"               - keylogin.h device serial
+"android/content/ClipboardManager" "getText"       - java.h getClipboard()
+"android/net/ConnectivityManager"/"NetworkCapabilities" "TRANSPORT_VPN" "TYPE_VPN"
+xhook targets: "Java_com_miniclip_input_MCInput_nativeTouchesBegin/End/Move"
+xhook target: "eglSwapBuffers" in ".*/com.miniclip.eightballpool/.*"
+"com.miniclip.eightballpool" (host game package)   - includes.h get8BPbase(),
+    main.cpp __HOOKS__(), include/input.h __INPUT__()
+
+== LOGGING =====================================================================
+Log tag: "angousana"                              - include/logger.h (MY_LOG_TAG)
+"LIB LOADED SUCCESSFULLY" / "__HOOKS__" / "cmdline: %s" / "libmain: %p"
+"RETURNING NOW MY GODDY GOD" / "JNI_OnLoad"       - main.cpp
+"SAFEGUARD TRIGGERED, EXITING!"                   - includes.h TRIGGER_SAFEGUARD
+"AutoQueue: ..." / "StartAutoQueue"               - game/inc/AutoQueue.h
+"GetAndroidID: %s" / "GetClipboard: %s"           - java.h (sensitive-logging)
+
+== FILE PATHS (config/state) ====================================================
+"/data/user_de/0/<pkg>/no_backup/.ini"             - menu.h SetupImgui (ImGui ini)
+"/data/user_de/0/<pkg>/no_backup/persistence.json" - persistence.h save/load
+"/data/user_de/0/<pkg>/no_backup/style.json"       - persistence.h imgui style
+"/data/user/0/<pkg>/files/svConfig.txt"            - menu.h svConfig_Save/Load
+"/proc/self/maps" / "/proc/self/cmdline"           - includes.h
+"/proc/net/dev"                                    - keylogin.h VPN guard
+
+== PERSISTENCE/FEATURE KEYS =====================================================
+ESP/config toggles: "bESP_DrawPredictionLine", "bESP_DrawPockets",
+  "bESP_DrawPocketsShotState", "bAutoPlay", "bAutoQueue",
+  "iLineThickness", "iMenuSizeOffset", "iAutoQueue_FixTable"
+JNI config channel keys: "ESP::LINES","ESP::POCKETS","ESP::STATES",
+  "AUTO::PLAY","AUTO::QUEUE"                        - main.cpp onSendConfig
+License key stored under persistence key "key" (persistent_string["key"])
+Leftover FPS-template keys (unused by 8BP code): "bAIM*","bESP_Line",
+  "bESP_Skeleton","bESP_Box","cESP_*","bBulletTrack*","fAIM_Fov",... -
+  imgui/inc/persistence.h, include/features.h (template heritage)
+
+== HARDCODED BUILD/TIME CONSTANTS ===============================================
+EXPIRY_TS = 1788805800  -> 2026-09-07 18:30:00 UTC (hard "beta" kill-switch)
+    location: menu.h (static const int64_t EXPIRY_TS = O(1788805800LL);)
+XOR key for panel URL: 0x5A                       - keylogin.h
+Login freshness window: rng + 30 > now (30 s)     - keylogin.h
+curl timeouts: CONNECTTIMEOUT 15s, TIMEOUT 30s    - keylogin.h
+getDt(): UTC+3 formatted timestamp helper (comment says IST, actually +3h)
+AutoQueue modeBets map: M1=50 .. M17=100000000    - game/inc/AutoQueue.h
+fixedTableValues[17] = {100,200,1000,2500,10000,50000,100000,500000,1000000,
+    2000000,5000000,8000000,10000000,20000000,30000000,50000000,200000000}
+StartMatch constants: arg10 0x7100000001, arg11 0xffffffff - AutoQueue.h
+Ball radius 3.800475; table 254.0 x 127.0; pocket radius 8.0 -
+    game/inc/GameConstants.h, game/Table.h
+Reference render resolution 1280x640; table anchors 207/1072/171/584 -
+    game/inc/ScreenTable.h
+TIME_PER_TICK 0.005; MAX_SHOT_RESULT_SIZE 50000   - GameConstants.h
+
+== BUILD-PATH LEAKS (third-party binaries) ======================================
+/home/cici/AppProjects/Bloodstrike-static-v2/jni/include/external/xhook
+    - embedded debug info in all 7 xhook .o files (compiled for a
+      "Bloodstrike" game project by user "cici"; Android clang 18.0.3 r522817c)
+/Users/leenjewel/workspaces/openssl_for_ios_and_android/...
+    - .comment / build info in libcrypto.a, libssl.a, libcurl.a
+      (GCC 4.9.x 20150123; macOS build host)
+
+== VERSION MARKERS ==============================================================
+libxhook 1.2.0 (aarch64)                          - xh_version.o strings
+ImGui 1.85 WIP (IMGUI_VERSION_NUM 18416)          - imgui/src/imgui.h
+nlohmann/json 3.11.2                              - json/json.hpp
+libzip 1.0.1                                       - libzip/zipconf.h (source, NOT compiled)
+libcurl 7.51.0 (2016-11-02)                        - curlver.h + version .o
+OpenSSL 1.1.0c (2016-11-10)                        - opensslv.h + cversion.o
+Gradle 8.5 (wrapper) / AGP 8.2.1 / NDK 24.0.8215888 / compileSdk 34
+
+== OBFUSCATED EXPORT NAMES (random_names.h samples) ==============================
+N_0 eUDXnpGl, N_3 nvnxbEKM, N_4 A7aiO3gT, N_6 u1MiCqsn, N_7 OuLVUcwu,
+N_8 G3vd0iUd, N_9 ODCLQ2hA, N_10 eBV5p25k, N_11 k8y8vVQx, N_12 MYHshp22,
+N_13 nVB0TngE ... (~1516 generated name lines)
+Resolved at runtime via ManualLookup::dlsym_hashed(FNV-1a) - manual_dlsym.h
+
+== LANGUAGE NOTES ================================================================
+- File headers: English ("DARK OWNER ADMIN SERVER ... Proudly Made for India")
+- Code comments: Romanian (MainActivity.java, menu.h), Hindi/Hinglish
+  (keylogin.h ParseExpiryTime comment "Server EXP ko Unix timestamp me
+  convert karta hai", notice "Private Source ke liye direct contact karein"),
+  Bengali (Application.mk, dynamic.h, manual_dlsym.h, stacktrace.h),
+  Arabic (AutoPlay.h inline comments).
+================================================================================
